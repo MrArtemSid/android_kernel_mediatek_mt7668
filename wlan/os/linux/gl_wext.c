@@ -2820,6 +2820,8 @@ wext_set_encode_ext(IN struct net_device *prNetDev,
 				prWepKey->u4KeyIndex |= 0x80000000;
 				prWepKey->u4Length = 12 + prIWEncExt->key_len;
 				prWepKey->u4KeyLength = prIWEncExt->key_len;
+				if (prIWEncExt->key_len > sizeof(prWepKey->aucKeyMaterial))
+					return -EINVAL;
 				/* kalMemCopy(prWepKey->aucKeyMaterial, pcExtra, prIWEncExt->key_len); */
 				kalMemCopy(prWepKey->aucKeyMaterial, prIWEncExt->key, prIWEncExt->key_len);
 
