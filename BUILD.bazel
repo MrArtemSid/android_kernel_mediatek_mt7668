@@ -1,0 +1,21 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["Makefile"])
+
+filegroup(
+    name = "mt7668_srcs",
+    srcs = glob(
+        [
+            "Makefile",
+            "compat/**",
+            "wlan/**",
+        ],
+    ),
+)
+
+filegroup(
+    name = "mt7668_firmware",
+    srcs = glob(["firmware/**"]),
+)
