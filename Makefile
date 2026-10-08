@@ -36,6 +36,12 @@ subdir-ccflags-y += -Wno-error=sometimes-uninitialized \
 		    -Wno-error=misleading-indentation \
 		    -Wno-error=unneeded-internal-declaration
 
+# Log only errors and warnings (DBG_CLASS_ERROR | DBG_CLASS_WARN). The vendor
+# default also enables STATE/EVENT everywhere and every class for REQ, which
+# floods dmesg with a few lines per second. Can be raised at runtime with
+# "echo 0xFF:0xff > /proc/net/wlan/dbg_level".
+subdir-ccflags-y += -DCFG_DEFAULT_DBG_LEVEL=0x03
+
 else
 
 KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
