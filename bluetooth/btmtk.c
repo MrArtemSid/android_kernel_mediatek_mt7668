@@ -59,6 +59,8 @@ struct btmtk_section_map {
 	};
 } __packed;
 
+/* struct hci_dev has no devcoredump support before 6.4. */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
 static void btmtk_coredump(struct hci_dev *hdev)
 {
 	int err;
@@ -108,6 +110,7 @@ static void btmtk_coredump_notify(struct hci_dev *hdev, int state)
 		break;
 	}
 }
+#endif
 
 void btmtk_fw_get_filename(char *buf, size_t size, u32 dev_id, u32 fw_ver,
 			   u32 fw_flavor)
@@ -377,6 +380,7 @@ EXPORT_SYMBOL_GPL(btmtk_reset_sync);
 int btmtk_register_coredump(struct hci_dev *hdev, const char *name,
 			    u32 fw_version)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
 	struct btmtk_data *data = hci_get_priv(hdev);
 
 	if (!IS_ENABLED(CONFIG_DEV_COREDUMP))
@@ -388,11 +392,15 @@ int btmtk_register_coredump(struct hci_dev *hdev, const char *name,
 
 	return hci_devcd_register(hdev, btmtk_coredump, btmtk_coredump_hdr,
 				  btmtk_coredump_notify);
+#else
+	return -EOPNOTSUPP;
+#endif
 }
 EXPORT_SYMBOL_GPL(btmtk_register_coredump);
 
 int btmtk_process_coredump(struct hci_dev *hdev, struct sk_buff *skb)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
 	struct btmtk_data *data = hci_get_priv(hdev);
 	int err;
 	bool complete = false;
@@ -438,6 +446,10 @@ int btmtk_process_coredump(struct hci_dev *hdev, struct sk_buff *skb)
 	}
 
 	return err;
+#else
+	kfree_skb(skb);
+	return 0;
+#endif
 }
 EXPORT_SYMBOL_GPL(btmtk_process_coredump);
 

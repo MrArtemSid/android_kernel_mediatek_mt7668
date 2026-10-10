@@ -1064,6 +1064,8 @@ static int btmtksdio_mtk_reg_write(struct hci_dev *hdev, u32 reg, u32 val, u32 m
 	return err;
 }
 
+/* Codec offload for HFP: struct hci_dev has no codec hooks before 5.16. */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 static int btmtksdio_get_data_path_id(struct hci_dev *hdev, __u8 *data_path_id)
 {
 	/* uses 1 as data path id for all the usecases */
@@ -1119,6 +1121,7 @@ error:
 	*ven_data = NULL;
 	return err;
 }
+#endif
 
 static int btmtksdio_sco_setting(struct hci_dev *hdev)
 {
@@ -1156,8 +1159,10 @@ static int btmtksdio_sco_setting(struct hci_dev *hdev)
 	if (err < 0)
 		return err;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 	hdev->get_data_path_id = btmtksdio_get_data_path_id;
 	hdev->get_codec_config_data = btmtksdio_get_codec_config_data;
+#endif
 
 	return err;
 }
@@ -1426,6 +1431,7 @@ err:
 	hci_reset_dev(hdev);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 static bool btmtksdio_sdio_inband_wakeup(struct hci_dev *hdev)
 {
 	struct btmtksdio_dev *bdev = hci_get_drvdata(hdev);
@@ -1458,6 +1464,7 @@ static bool btmtksdio_sdio_wakeup(struct hci_dev *hdev)
 
 	return may_wakeup;
 }
+#endif
 
 static int btmtksdio_probe(struct sdio_func *func,
 			   const struct sdio_device_id *id)
@@ -1496,11 +1503,16 @@ static int btmtksdio_probe(struct sdio_func *func,
 
 	hdev->open     = btmtksdio_open;
 	hdev->close    = btmtksdio_close;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
 	hdev->reset    = btmtksdio_reset;
+#else
+	hdev->cmd_timeout = btmtksdio_reset;
+#endif
 	hdev->flush    = btmtksdio_flush;
 	hdev->setup    = btmtksdio_setup;
 	hdev->shutdown = btmtksdio_shutdown;
 	hdev->send     = btmtksdio_send_frame;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
 	hdev->wakeup   = btmtksdio_sdio_wakeup;
 	/*
 	 * If SDIO controller supports wake on Bluetooth, sending a wakeon
@@ -1510,6 +1522,7 @@ static int btmtksdio_probe(struct sdio_func *func,
 		hdev->wakeup = btmtksdio_sdio_inband_wakeup;
 	else
 		hdev->wakeup = btmtksdio_sdio_wakeup;
+#endif
 	hdev->set_bdaddr = btmtk_set_bdaddr;
 
 	SET_HCIDEV_DEV(hdev, &func->dev);
