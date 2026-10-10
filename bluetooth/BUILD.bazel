@@ -1,0 +1,10 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["Makefile"])
+
+filegroup(
+    name = "mt7668_bt_srcs",
+    srcs = glob(["**"]),
+)
